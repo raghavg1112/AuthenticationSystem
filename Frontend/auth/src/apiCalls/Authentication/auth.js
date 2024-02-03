@@ -4,9 +4,9 @@ const baseUrl = "http://localhost:5000/user/auth";
 
 export const login = async (data) => {
   console.log(data);
-  const { email, password } = data;
 
   try {
+    const { email, password } = data;
     let response = await axios.post(`${baseUrl}/login`, {
       email: email,
       password: password,
@@ -14,7 +14,7 @@ export const login = async (data) => {
 
     return response.data;
   } catch (err) {
-    throw { success: "false", message: err };
+    throw err;
   }
 };
 

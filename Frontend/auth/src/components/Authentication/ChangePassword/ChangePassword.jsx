@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 
 export default function ChangePassword() {
   const [input, setInput] = useState({
@@ -16,7 +17,7 @@ export default function ChangePassword() {
 
   const sendchangerequest = async (e) => {
     let sendOtp = await axios.post(
-      "http://localhost:8080/user/forgotPassword",
+      "http://localhost:5000/user/auth/forgotPassword",
       {
         email: input.email,
       }
@@ -27,9 +28,16 @@ export default function ChangePassword() {
   return (
     <>
       <div>
-        <input type="email" placeholder="enter your email" name="email"></input>
+        <input
+          type="email"
+          placeholder="enter your email"
+          name="email"
+          onChange={(e) => {
+            handleChange(e);
+          }}
+        ></input>
         <button
-          onClick={() => {
+          onClick={(e) => {
             sendchangerequest(e);
           }}
         />

@@ -1,12 +1,12 @@
 const express = require("express");
-const { userAuthorisation } = require("../Middlewares/userAuth");
+const { userAuthorisation } = require("../Middlewares/userAuthorisationMid");
 const userController = require("../Controllers/userController");
 
 const userRouter = express.Router();
 
 userRouter.post("/auth/signUp", userController.signUp);
 userRouter.post("/auth/login", userController.login);
-userRouter.get("/auth/forgotPassword", userController.forgotPassword);
+userRouter.post("/auth/forgotPassword", userController.forgotPassword);
 userRouter.get("/auth/otpVerification", userController.otpVerification);
 
 userRouter.post(
@@ -15,6 +15,10 @@ userRouter.post(
   userController.resetPassword
 );
 
-userRouter.get("/fetchData", userAuthorisation, userController.fetchData);
+userRouter.get(
+  "/data/profileView",
+  userAuthorisation,
+  userController.profileView
+);
 
 module.exports = userRouter;

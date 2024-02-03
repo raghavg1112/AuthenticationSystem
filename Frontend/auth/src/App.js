@@ -5,7 +5,7 @@ import Home from "./components/Home/Home";
 import Login from "./components/Authentication/Login/Login";
 import SignUp from "./components/Authentication/SignUp/SignUp";
 import ChangePassword from "./components/Authentication/ChangePassword/ChangePassword";
-import Profile from "./components/Profile/Profile";
+import Profile from "./components/User/Profile/Profile";
 
 function App() {
   return (

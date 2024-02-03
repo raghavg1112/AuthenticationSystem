@@ -15,8 +15,9 @@ export default function Login() {
     try {
       let response = await login(input);
       console.log(response);
-      // alert("successfully");
-      // Navigate("/login");
+      alert("successfully");
+
+      Navigate("/profile");
     } catch (err) {
       alert(err);
     }
@@ -28,8 +29,7 @@ export default function Login() {
       [name]: value,
     });
   };
-  console.log(`hello from login`);
-
+  console.log(document.cookie.jwt);
   return (
     <>
       <div>

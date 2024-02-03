@@ -6,6 +6,8 @@ const userSchema = {
   password: { type: String, required: true },
   countryCode: { type: Number, required: true },
   phoneNumber: { type: Number, required: true, unique: true },
+  orders: { type: Array },
+  cart: { type: Array },
 };
 
 const User = mongoose.model("User", userSchema);

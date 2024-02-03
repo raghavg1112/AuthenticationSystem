@@ -7,112 +7,115 @@ const User = require("../Models/User");
 const Otp = require("../Models/otp");
 
 const signUp = async (req, res) => {
-  console.log(`server signUp`);
-  console.log(req.body);
-  // const { name, email, password, countryCode, phoneNumber } = req.body;
+  const { name, email, password, countryCode, phoneNumber } = req.body;
 
-  // const salt = await bcrypt.genSalt(10);
-  // const securePassword = await bcrypt.hash(password, salt);
+  const salt = await bcrypt.genSalt(10);
+  const securePassword = await bcrypt.hash(password, salt);
 
-  // const user = new User({
-  //   name: name,
-  //   email: email,
-  //   password: securePassword,
-  //   countryCode: countryCode,
-  //   phoneNumber: phoneNumber,
-  // });
+  const user = new User({
+    name: name,
+    email: email,
+    password: securePassword,
+    countryCode: countryCode,
+    phoneNumber: phoneNumber,
+  });
 
-  // user
-  //   .save()
-  //   .then(() => {
-  //     return res.status(201).json({
-  //       success: true,
+  user
+    .save()
+    .then(() => {
+      return res.status(201).json({
+        success: true,
 
-  //       message: "User created successfully",
-  //       errorCode: 201,
-  //       data: null,
-  //     });
-  //   })
-  //   .catch((err) => {
-  //     return res.json({
-  //       success: false,
-  //       message: err,
-  //       errorCode: 500,
-  //       data: null,
-  //     });
-  //   });
+        message: "User created successfully",
+        errorCode: 201,
+        data: null,
+      });
+    })
+    .catch((err) => {
+      return res.json({
+        success: false,
+        message: err,
+        errorCode: 500,
+        data: null,
+      });
+    });
 };
 
 const login = async (req, res) => {
-  console.log(`login`);
-  console.log(req.body);
-  // try {
+  console.log(`server login `, req.body);
+  try {
+    const { email, password } = req.body;
+    // console.log(`before checking database`);
+    const user = await User.findOne({ email: email });
+    // console.log(email, user);
+    // console.log(`after search in database`);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        errorCode: 401,
+        message: "Authentication failed. User not found.",
+        data: null,
+      });
+    }
+    // console.log(`before comparing pass`);
+    const checkPassword = await bcrypt.compare(password, user.password);
+    // console.log(`after comparing password`);
+    if (!checkPassword) {
+      return res.status(401).json({
+        success: false,
+        errorCode: 401,
+        message: "Authentication failed. Wrong Password.",
+        data: null,
+      });
+    }
+    const SECRETKEY = process.env.SECRETKEY;
+    // console.log(`before signing`);
+    const token = await jwt.sign(
+      {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        countryCode: user.countryCode,
+      },
+      SECRETKEY,
+      { expiresIn: `5m` }
+    );
+    // console.log(`after signing token`);
+    res.cookie("jwt", token, { secure: true });
 
-  //   const { email, password } = req.body;
-
-  //   const user = User.findOne({ email: email });
-  //   if (!user) {
-  //     return res.status(401).json({
-  //       success: false,
-  //       errorCode: 401,
-  //       message: "Authentication failed. User not found.",
-  //       data: null,
-  //     });
-  //   }
-
-  //   const checkPassword = await bcrypt.compare(password, user.password);
-  //   if (!checkPassword) {
-  //     return res.status(401).json({
-  //       success: false,
-  //       errorCode: 401,
-  //       message: "Authentication failed. Wrong Password.",
-  //       data: null,
-  //     });
-  //   }
-  //   const SECRETKEY = process.env.SECRETKEY;
-  //   const token = await jwt.sign(
-  //     {
-  //       name: user.name,
-  //       email: user.email,
-  //       phoneNumber: user.phoneNumber,
-  //       countryCode: user.countryCode,
-  //     },
-  //     SECRETKEY,
-  //     { expiresIn: `10m` }
-  //   );
-
-  //   res.cookie("jwt", token, { secure: true });
-  //   return res.statues(200).json({
-  //     success: true,
-  //     errorCode: 200,
-  //     message: "Authentication successful",
-  //     data: null,
-  //   });
-  // } catch (err) {
-  //   return res.status(500).json({
-  //     success: false,
-  //     errorCode: 500,
-  //     message: err.message,
-  //     data: null,
-  //   });
-  // }
-};
-
-const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email: email });
-
-  if (!user) {
-    return res.status(401).json({
+    return res.status(200).json({
+      success: true,
+      errorCode: 200,
+      message: "Authentication successful",
+      data: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
       success: false,
-      errorCode: 401,
-      message: " User not found.",
+      errorCode: 500,
+      message: err.message,
       data: null,
     });
   }
+};
 
-  nodemailer.createTransport({
-    host: "smtp.example.com",
+const forgotPassword = async (req, res) => {
+  console.log(req.body);
+  const { email } = req.body;
+  // const user = await User.findOne({ email: email });
+
+  // if (!user) {
+  //   return res.status(401).json({
+  //     success: false,
+  //     errorCode: 401,
+  //     message: " User not found.",
+  //     data: null,
+  //   });
+  // }
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
     port: 587,
     secure: false, // upgrade later with STARTTLS
     auth: {
@@ -120,7 +123,8 @@ const forgotPassword = async (req, res) => {
       pass: process.env.nodemailerPassword,
     },
   });
-
+  console.log(`from`, process.env.email);
+  console.log(`to`, email);
   const mailOptions = {
     from: process.env.email, // sender address
     to: email, // list of receivers
@@ -138,6 +142,7 @@ const forgotPassword = async (req, res) => {
     }
   };
   sendMail(transporter, mailOptions);
+  console.log(`email sent`);
 };
 
 const otpVerification = async (req, res) => {
@@ -159,11 +164,11 @@ const otpVerification = async (req, res) => {
       email: email,
     },
     SECRETKEY,
-    { expiresIn: `5m` }
+    { expiresIn: `1m` }
   );
 
   res.cookie("jwt", token, { secure: true });
-  return res.statues(200).json({
+  return res.status(200).json({
     success: true,
     errorCode: 200,
     message: "Authentication successful",
@@ -186,7 +191,7 @@ const resetPassword = async (req, res) => {
     });
   }
 
-  return res.statues(200).json({
+  return res.status(200).json({
     success: true,
     errorCode: 200,
     message: "Password changed successfully",
@@ -194,13 +199,13 @@ const resetPassword = async (req, res) => {
   });
 };
 
-const fetchData = async (req, res) => {
-  return res.statues(200).json({
+const profileView = async (req, res) => {
+  return res.status(200).json({
     success: true,
     errorCode: 200,
     message:
       "Data Fetched successfully after authorisation by middleware using jwt",
-    data: { wAdmin },
+    data: null,
   });
 };
 
@@ -210,5 +215,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   otpVerification,
-  fetchData,
+  profileView,
 };
